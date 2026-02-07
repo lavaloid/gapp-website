@@ -1,0 +1,172 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { SITE_TITLE, GAPP_START_DATE } from "../consts";
+import { range } from "../utils";
+
+// Prepare data to create a calendar
+const TODAY = new Date();
+const years = range(GAPP_START_DATE.getFullYear(), TODAY.getFullYear());
+
+const calendar = years.map((year, i) => {
+  const startMonth = i === 0 ? GAPP_START_DATE.getMonth() : 0;
+  const endMonth = i === years.length - 1 ? TODAY.getMonth() : 11;
+
+  const months = range(startMonth, endMonth);
+
+  return {
+    year,
+    months: months.map((month) => {
+      const weeks: (number | null)[][] = [[]];
+      const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+
+      for (const day of range(1, lastDayOfMonth)) {
+        const dayOfWeek = new Date(year, month, day).getDay();
+        if (dayOfWeek === 0 && day !== 1) {
+          weeks.push([]);
+        }
+
+        if (day === 1) {
+          // Add padding to start of month if needed
+          weeks.at(-1)?.push(...(Array.from({ length: dayOfWeek }) as null[]));
+        }
+        weeks.at(-1)?.push(day);
+        if (day === lastDayOfMonth) {
+          // Add padding to end of month
+          weeks
+            .at(-1)
+            ?.push(...(Array.from({ length: 6 - dayOfWeek }) as null[]));
+        }
+      }
+
+      return {
+        monthName: new Date(year, month, 1).toLocaleString("en-US", {
+          month: "short",
+        }),
+        monthNumber: month,
+        weeks,
+      };
+    }),
+  };
+});
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead
+      title={`Archive | ${SITE_TITLE}`}
+      description="The full historical archive of GAPP."
+    />
+  </head>
+  <body>
+    <Header />
+    <main>
+      <h1>Archive</h1>
+
+      {
+        calendar.map(({ year, months }) => {
+          return (
+            <section class="calendar-year">
+              <h2>{year}</h2>
+
+              <div class="calendar-grid">
+                {months.map(({ monthName, monthNumber, weeks }) => {
+                  return (
+                    <div class="calendar-month">
+                      <h3>{monthName}</h3>
+
+                      <table class="calendar">
+                        <thead>
+                          <tr>
+                            <th>S</th>
+                            <th>M</th>
+                            <th>T</th>
+                            <th>W</th>
+                            <th>T</th>
+                            <th>F</th>
+                            <th>S</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {weeks.map((week) => (
+                            <tr>
+                              {week.map((day) => {
+                                if (!day) return <td />;
+
+                                const currentDate = new Date(
+                                  year,
+                                  monthNumber,
+                                  day,
+                                );
+                                if (currentDate > TODAY) {
+                                  return <td>{day}</td>;
+                                }
+
+                                return (
+                                  <td>
+                                    <a
+                                      href={`/archive/${currentDate.toISOString().split("T")[0]}`}
+                                    >
+                                      {day}
+                                    </a>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })
+      }
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .calendar {
+    text-align: center;
+  }
+  .calendar th {
+    background-color: #ddd;
+  }
+  .calendar th:first-child {
+    background-color: oklch(80% 30% 20deg);
+  }
+  .calendar th:last-child {
+    background-color: oklch(80% 30% 300deg);
+  }
+  .calendar td:first-child {
+    background-color: oklch(90% 20% 20deg);
+  }
+  .calendar td:last-child {
+    background-color: oklch(90% 20% 300deg);
+  }
+
+  .calendar a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .calendar a:hover,
+  .calendar a:focus-visible {
+  }
+
+  /* TODO: align the grid such that december is always at bottom right */
+</style>

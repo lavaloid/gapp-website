@@ -3,7 +3,7 @@ import BaseHead from "../components/BaseHead.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import { SITE_TITLE, GAPP_START_DATE } from "../consts";
-import { range } from "../utils";
+import { formatISODate, range } from "../utils";
 
 // Prepare data to create a calendar
 const TODAY = new Date();
@@ -77,23 +77,35 @@ const calendar = years.map((year, i) => {
                     <div class="calendar-month">
                       <h3>{monthName}</h3>
 
-                      <table class="calendar">
+                      <table
+                        class="calendar"
+                        tabindex="0"
+                        role="grid"
+                        aria-label={new Date(
+                          year,
+                          monthNumber,
+                          1,
+                        ).toLocaleString("en-US", {
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      >
                         <thead>
                           <tr>
-                            <th>S</th>
-                            <th>M</th>
-                            <th>T</th>
-                            <th>W</th>
-                            <th>T</th>
-                            <th>F</th>
-                            <th>S</th>
+                            <th aria-label="Sunday">S</th>
+                            <th aria-label="Monday">M</th>
+                            <th aria-label="Tuesday">T</th>
+                            <th aria-label="Wednesday">W</th>
+                            <th aria-label="Thursday">T</th>
+                            <th aria-label="Friday">F</th>
+                            <th aria-label="Saturday">S</th>
                           </tr>
                         </thead>
                         <tbody>
                           {weeks.map((week) => (
                             <tr>
                               {week.map((day) => {
-                                if (!day) return <td />;
+                                if (!day) return <td aria-disabled="true" />;
 
                                 const currentDate = new Date(
                                   year,
@@ -101,13 +113,33 @@ const calendar = years.map((year, i) => {
                                   day,
                                 );
                                 if (currentDate > TODAY) {
-                                  return <td>{day}</td>;
+                                  return (
+                                    <td
+                                      style="opacity: 0.5"
+                                      aria-disabled="true"
+                                    >
+                                      {day}
+                                    </td>
+                                  );
                                 }
 
                                 return (
                                   <td>
                                     <a
-                                      href={`/archive/${currentDate.toISOString().split("T")[0]}`}
+                                      href={`/archive/${formatISODate(currentDate)}`}
+                                      target="_blank"
+                                      tabindex="-1"
+                                      data-day={formatISODate(currentDate)}
+                                      aria-label={new Date(
+                                        year,
+                                        monthNumber,
+                                        day,
+                                      ).toLocaleString("en-US", {
+                                        weekday: "long",
+                                        day: "numeric",
+                                        month: "long",
+                                        year: "numeric",
+                                      })}
                                     >
                                       {day}
                                     </a>
@@ -163,10 +195,85 @@ const calendar = years.map((year, i) => {
     height: 100%;
     text-decoration: none;
     transition: color 0.2s;
+    background-color: transparent;
   }
   .calendar a:hover,
   .calendar a:focus-visible {
+    background-color: #0001;
   }
 
   /* TODO: align the grid such that december is always at bottom right */
 </style>
+
+<script>
+  // fancy keyboard navigation for calendars
+  import { formatISODate } from "../utils";
+
+  window.addEventListener("load", () => {
+    const calendars: NodeListOf<HTMLTableElement> =
+      document.querySelectorAll(".calendar");
+    for (const calendar of calendars) {
+      calendar.addEventListener("focus", () => {
+        const firstDay = calendar.querySelector("a");
+        firstDay?.focus();
+      });
+
+      for (const link of calendar.querySelectorAll("a")) {
+        const handleKeyDown = (e: KeyboardEvent) => {
+          const el = e.target as HTMLAnchorElement;
+          const elementDate = new Date(el.dataset.day as string);
+          const ONE_DAY = 24 * 60 * 60 * 1000;
+
+          /**
+           * Navigation:
+           *
+           * Right     : Next day
+           * Left      : Prev day
+           * Up        : Prev week, same weekday
+           * Down      : Next week, same weekday
+           * Tab       : Next month, same date
+           * Shift+Tab : Prev month, same date
+           */
+
+          let targetDate = elementDate;
+          let ignoreInput = false;
+
+          if (e.key === "ArrowRight") {
+            targetDate = new Date(+elementDate + ONE_DAY);
+          } else if (e.key === "ArrowLeft") {
+            targetDate = new Date(+elementDate - ONE_DAY);
+          } else if (e.key === "ArrowDown") {
+            targetDate = new Date(+elementDate + 7 * ONE_DAY);
+          } else if (e.key === "ArrowUp") {
+            targetDate = new Date(+elementDate - 7 * ONE_DAY);
+          } else if (e.key === "Tab" && !e.shiftKey) {
+            targetDate.setMonth(targetDate.getMonth() + 1);
+          } else if (e.key === "Tab" && e.shiftKey) {
+            targetDate.setMonth(targetDate.getMonth() - 1);
+          } else {
+            ignoreInput = true;
+          }
+
+          if (!ignoreInput) {
+            const targetElement = document.querySelector(
+              `.calendar a[data-day='${formatISODate(targetDate)}']`,
+            ) as HTMLAnchorElement | null;
+            if (targetElement) {
+              e.preventDefault();
+              targetElement?.focus();
+            }
+          }
+        };
+
+        link.addEventListener("focus", () => {
+          link.tabIndex = 0;
+          link.addEventListener("keydown", handleKeyDown);
+        });
+        link.addEventListener("blur", () => {
+          link.tabIndex = -1;
+          link.removeEventListener("keydown", handleKeyDown);
+        });
+      }
+    }
+  });
+</script>

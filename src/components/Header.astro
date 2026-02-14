@@ -21,7 +21,7 @@ const TODAY = new Date();
           type="date"
           min={formatISODate(GAPP_START_DATE)}
           max={formatISODate(TODAY)}
-					required
+          required
         />
 
         <button type="submit">View</button>
@@ -77,12 +77,15 @@ const TODAY = new Date();
     flex-wrap: wrap;
     gap: 4px 8px;
   }
+  #go-to-form button {
+    font: inherit;
+  }
 
   .social-links,
   .social-links a {
     display: flex;
   }
-  @media (max-width: 720px) {
+  @media (max-width: 100ch) {
     nav {
       flex-direction: row;
       flex-wrap: wrap;

@@ -1,0 +1,105 @@
+---
+import {
+  Client,
+  GatewayIntentBits,
+  SnowflakeUtil,
+  TextChannel,
+} from "discord.js";
+import dotenv from "dotenv";
+import Layout from "../../layouts/BlogPost.astro";
+
+export const prerender = false;
+Astro.response.headers.set("Cache-Control", "public, max-age=3600");
+
+const { date } = Astro.params;
+
+dotenv.config();
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+  ],
+});
+
+await client.login(process.env.DISCORD_APP_TOKEN);
+
+const parsedDate: Date = new Date(`${date}T00:00:00Z`);
+
+const channel = (await client.channels.fetch(
+  process.env.DISCORD_CHANNEL_ID || "",
+  { cache: true },
+)) as TextChannel;
+
+// We're fetching messages at a certain date by constructing a fake message ID
+// at a specified date, then querying messages after that.
+const snowflakeId = SnowflakeUtil.generate({ timestamp: +parsedDate });
+const messages = (
+  await channel.messages.fetch({
+    after: `${snowflakeId}`,
+    cache: true,
+    limit: 10,
+  })
+)
+  .filter(
+    (message) =>
+      message.createdAt <= new Date(+parsedDate + 24 * 60 * 60 * 1000),
+  )
+  .map((v) => v);
+
+const parsedMessages = messages.map((message, index) => {
+  return {
+    ...message,
+    showAuthor:
+      index === 0 || message.author.id !== messages.at(index - 1)?.author.id,
+  };
+});
+---
+
+<Layout
+  title={parsedDate.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })}
+  description="Lorem ipsum dolor sit amet"
+>
+  {
+    parsedMessages.map((message) => (
+      <>
+        {message.showAuthor && (
+          <div class="author">
+            <img
+              class="author-avatar"
+              src={message.author.avatarURL({ size: 64, forceStatic: true })}
+            />
+            <p>{message.author.displayName}</p>
+          </div>
+        )}
+        <p style="white-space: pre-wrap">{message.content}</p>
+      </>
+    ))
+  }
+</Layout>
+
+<style>
+  .author {
+    display: flex;
+    align-items: center;
+    gap: 1ch;
+
+    border-radius: 8px;
+    background-color: var(--accent);
+    padding: 1ch;
+  }
+  .author img {
+    border-radius: 1000px;
+    width: 2em;
+    height: 2em;
+  }
+  .author p {
+    font-weight: bold;
+    color: white;
+    margin: 0;
+  }
+</style>

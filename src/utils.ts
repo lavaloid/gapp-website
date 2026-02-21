@@ -1,3 +1,5 @@
+import { GAPP_PUBLISH_DELAY_DAYS, GAPP_START_DATE } from "./consts";
+
 /**
  * Get all integers from `from` to `to` inclusive
  */
@@ -11,3 +13,7 @@ export const formatISODate = (date: Date) => {
   // as ISO 8601. thank you sweden
   return date.toLocaleDateString("sv");
 };
+
+export const canDisplayPost = (date: Date) =>
+  date >= GAPP_START_DATE &&
+  (+new Date() - +date) / (24 * 60 * 60 * 1000) > GAPP_PUBLISH_DELAY_DAYS;

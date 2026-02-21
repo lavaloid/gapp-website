@@ -3,7 +3,7 @@ import BaseHead from "../components/BaseHead.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import { SITE_TITLE, GAPP_START_DATE } from "../consts";
-import { formatISODate, range } from "../utils";
+import { canDisplayPost, formatISODate, range } from "../utils";
 
 // Prepare data to create a calendar
 const TODAY = new Date();
@@ -112,7 +112,7 @@ const calendar = years.map((year, i) => {
                                   monthNumber,
                                   day,
                                 );
-                                if (currentDate > TODAY) {
+                                if (!canDisplayPost(currentDate)) {
                                   return (
                                     <td
                                       style="opacity: 0.5"

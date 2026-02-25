@@ -164,6 +164,10 @@ const calendar = years.map((year, i) => {
 </html>
 
 <style>
+  h1 {
+    text-align: center;
+  }
+
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -200,6 +204,14 @@ const calendar = years.map((year, i) => {
   .calendar a:hover,
   .calendar a:focus-visible {
     background-color: #0001;
+  }
+
+  .calendar-year {
+    padding: 1em 0;
+    border-top: dotted 3px black;
+  }
+  .calendar-year h2 {
+    text-align: center;
   }
 
   /* TODO: align the grid such that december is always at bottom right */

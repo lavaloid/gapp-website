@@ -14,6 +14,14 @@ export const formatISODate = (date: Date) => {
   return date.toLocaleDateString("sv");
 };
 
+export const formatReadableDate = (date: Date) =>
+  date.toLocaleDateString("en-UK", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
 export const canDisplayPost = (date: Date) =>
   date >= GAPP_START_DATE &&
   (+new Date() - +date) / (24 * 60 * 60 * 1000) > GAPP_PUBLISH_DELAY_DAYS;

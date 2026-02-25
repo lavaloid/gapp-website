@@ -1,0 +1,181 @@
+---
+import { SnowflakeUtil, TextChannel } from "discord.js";
+import { parse } from "discord-markdown-parser";
+import Layout from "../../layouts/BlogPost.astro";
+import MessageRenderer from "../../components/MessageRenderer.astro";
+import { getClient } from "../../discord";
+import { canDisplayPost, formatReadableDate } from "../../utils";
+import { formatISODate } from "../../utils";
+import ArrowLeft from "../../icons/arrow-left.astro";
+import ArrowRight from "../../icons/arrow-right.astro";
+
+export const prerender = false;
+Astro.response.headers.set("Cache-Control", "public, max-age=3600");
+
+const { today } = Astro.params;
+
+const parsedDate: Date = new Date(`${today}T00:00:00Z`);
+
+if (!canDisplayPost(parsedDate)) {
+  return Astro.redirect("/404", 404);
+}
+
+const yesterday = new Date(+parsedDate - 24 * 60 * 60 * 1000);
+const tomorrow = new Date(+parsedDate + 24 * 60 * 60 * 1000);
+
+const client = getClient();
+const channel = (await client.channels.fetch(
+  process.env.DISCORD_CHANNEL_ID || "",
+  { cache: true },
+)) as TextChannel;
+
+// We're fetching messages at a certain date by constructing a fake message ID
+// at a specified date, then querying messages after that.
+const snowflakeId = SnowflakeUtil.generate({ timestamp: +parsedDate });
+const messages = (
+  await channel.messages.fetch({
+    after: `${snowflakeId}`,
+    cache: true,
+    limit: 10,
+  })
+)
+  .filter(
+    (message) =>
+      message.createdAt <= new Date(+parsedDate + 24 * 60 * 60 * 1000),
+  )
+  .map((v) => v)
+  .toReversed();
+
+const parsedMessages = messages.map((message, index) => {
+  return {
+    ...message,
+    parsedContent: parse(message.content.trim()),
+    showAuthor:
+      index === 0 || message.author.id !== messages.at(index - 1)?.author.id,
+  };
+});
+---
+
+<Layout
+  title={formatReadableDate(parsedDate)}
+  description="Lorem ipsum dolor sit amet"
+>
+  {
+    parsedMessages.length === 0 && (
+      <p style="text-align: center; padding: 3em 0em;">
+        No posts found for this date.
+      </p>
+    )
+  }
+  {
+    parsedMessages.map((message) => (
+      <>
+        {message.showAuthor && (
+          <div class="author">
+            <img
+              class="author-avatar"
+              src={message.author.avatarURL({ size: 64, forceStatic: true })}
+            />
+            <p>{message.author.displayName}</p>
+          </div>
+        )}
+        <p><MessageRenderer ast={message.parsedContent} /></p>
+        {/* TODO: attachments */}
+        {/* {message.attachments.map((attachment) => attachment.)} */}
+      </>
+    ))
+  }
+  <nav aria-label="Post navigation" class="post-nav">
+    {
+      canDisplayPost(yesterday) ? (
+        <a href={`/archive/${formatISODate(yesterday)}`}>
+          <ArrowLeft />
+          <div>
+            <>
+              <span>Yesterday</span>
+              <time datetime={formatISODate(yesterday)}>{formatReadableDate(yesterday)}</time>
+            </>
+          </div>
+        </a>
+      ) : (
+        <div />
+      )
+    }
+    {
+      canDisplayPost(tomorrow) ? (
+        <a href={`/archive/${formatISODate(tomorrow)}`}>
+          <>
+            <div style="text-align: right">
+              <>
+                <span>Tomorrow</span>
+                <time datetime={formatISODate(tomorrow)}>{formatReadableDate(tomorrow)}</time>
+              </>
+            </div>
+            <ArrowRight />
+          </>
+        </a>
+      ) : (
+        <div />
+      )
+    }
+  </nav>
+</Layout>
+
+<style is:global>
+  .author {
+    display: flex;
+    align-items: center;
+    gap: 1ch;
+
+    border-radius: 8px;
+    background-color: var(--accent);
+    padding: 1ch;
+  }
+  .author img {
+    border-radius: 1000px;
+    width: 2em;
+    height: 2em;
+  }
+  .author p {
+    font-weight: bold;
+    color: white;
+    margin: 0;
+  }
+
+  .prose {
+    white-space: pre-wrap;
+  }
+  .prose p {
+    margin-bottom: 0;
+  }
+
+  .post-nav {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1em;
+  }
+  .post-nav a {
+    display: flex;
+    flex-direction: row;
+    text-decoration: none;
+    align-items: center;
+    gap: 1ch;
+
+    color: white;
+    background-color: oklch(from var(--accent) 0.2 0.2 h);
+    padding: 0 1ch;
+    border-radius: 1ch;
+    transition: background-color 0.05s;
+  }
+  .post-nav a:hover {
+    background-color: oklch(from var(--accent) 0.3 0.3 h);
+  }
+  .post-nav a > div {
+    display: flex;
+    flex-direction: column;
+  }
+  .post-nav a time {
+    font-weight: bold;
+  }
+</style>

@@ -1,0 +1,310 @@
+---
+import { type ASTNode } from "simple-markdown";
+import { Code } from "astro:components";
+import { getClient } from "../discord";
+interface Props {
+  ast: ASTNode;
+}
+
+const { ast } = Astro.props;
+
+const TYPES_REQUIRING_API = ["user", "channel"];
+let displayedName = "";
+if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
+  const client = getClient();
+  if (ast.type === "user") {
+    const user = await client.users.fetch(ast.id, { cache: true });
+    displayedName = user.displayName;
+  } else if (ast.type === "channel") {
+    const channel = await client.channels.fetch(ast.id, { cache: true });
+    displayedName = channel.name;
+  }
+}
+---
+
+{
+  !Array.isArray(ast) &&
+    (() => {
+      switch (ast.type) {
+        case "text":
+          return ast.content;
+        case "em":
+          return (
+            <em>
+              <Astro.self ast={ast.content} />
+            </em>
+          );
+        case "strong":
+          return (
+            <strong>
+              <Astro.self ast={ast.content} />
+            </strong>
+          );
+        case "underline":
+          return (
+            <span class="underline">
+              <Astro.self ast={ast.content} />
+            </span>
+          );
+        case "strikethrough":
+          return (
+            <s>
+              <Astro.self ast={ast.content} />
+            </s>
+          );
+        case "spoiler":
+          return (
+            <span class="spoiler" tabindex="0">
+              <Astro.self ast={ast.content} />
+            </span>
+          );
+        case "autolink":
+        case "url":
+          // TODO: format discord embed image links properly
+          return (
+            <a href={ast.target} target="_blank">
+              <Astro.self ast={ast.content} />
+            </a>
+          );
+        case "heading":
+          // We can't use HTML heading elements since it would
+          // break markup for the rest of the page.
+          return (
+            <p class={`heading heading-${ast.level}`}>
+              <Astro.self ast={ast.content} />
+            </p>
+          );
+        case "subtext":
+          return (
+            <p class="subtext">
+              <Astro.self ast={ast.content} />
+            </p>
+          );
+        case "blockQuote":
+          return (
+            <blockquote>
+              <Astro.self ast={ast.content} />
+            </blockquote>
+          );
+        case "codeBlock":
+          return <Code code={ast.content} lang={ast.lang} />;
+        case "inlineCode":
+          return <code>{ast.content}</code>;
+        case "br":
+          return <br />;
+        case "twemoji":
+          // TODO: twemoji
+          return ast.name;
+        case "emoji":
+          return (
+            <img
+              src={`https://cdn.discordapp.com/emojis/${ast.id}.${ast.animated ? "gif" : "png"}`}
+              class="emoji"
+              alt={`(emoji) :${ast.name}:`}
+              title={ast.name}
+            />
+          );
+        case "timestamp":
+          return (
+            <time
+              datetime={new Date(+ast.timestamp * 1000).toISOString()}
+              data-format={ast.format}
+            >
+              {(() => {
+                const date = new Date(+ast.timestamp * 1000);
+
+                switch (ast.format) {
+                  case "t":
+                    return date.toLocaleTimeString("en", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                    });
+                  case "T":
+                    return date.toLocaleTimeString("en", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    });
+                  case "d":
+                    return date.toLocaleDateString("en", {
+                      day: "numeric",
+                      month: "2-digit",
+                      year: "numeric",
+                    });
+                  case "D":
+                    return date.toLocaleDateString("en", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    });
+                  case "F":
+                    return date.toLocaleString("en", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    });
+                  case "f":
+                  default:
+                    // format = R is formatted locally, see the script below
+                    return date.toLocaleString("en", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    });
+                }
+              })()}
+            </time>
+          );
+        case "user":
+          return <span class="user">@{displayedName || "Unknnown user"}</span>;
+        case "channel":
+          return (
+            <span class="channel">#{displayedName || "unknown-channel"}</span>
+          );
+        default:
+          console.log(JSON.stringify(ast.content, undefined, 2));
+          return (
+            <span
+              class="invalid-tag"
+              title="if you see this that means i forgot about this tag. please tell lavaloid about this thanks"
+            >
+              {ast.content || ast.name || ast.id}
+            </span>
+          );
+      }
+    })()
+}
+{Array.isArray(ast) && ast.map((node) => <Astro.self ast={node} />)}
+<style>
+  .underline {
+    text-decoration: underline;
+  }
+
+  img.emoji {
+    display: inline-block;
+    height: 1em;
+    transform: translateY(0.12em);
+  }
+
+  .spoiler {
+    background-color: rgb(var(--gray-dark));
+    padding: 0px 2px;
+    border-radius: 2px;
+  }
+  .spoiler * {
+    color: transparent;
+  }
+  .spoiler:not(.clickable):hover,
+  .spoiler.clicked {
+    background-color: rgb(var(--gray-light));
+  }
+  .spoiler:not(.clickable):hover *,
+  .spoiler.clicked * {
+    color: revert;
+  }
+  .spoiler.clickable {
+    cursor: pointer;
+  }
+  .spoiler.clickable:not(.clicked) * {
+    pointer-events: none;
+  }
+
+  .heading {
+    font-weight: bold;
+    margin: 0;
+  }
+  .heading-1 {
+    font-size: 2em;
+  }
+  .heading-2 {
+    font-size: 1.5em;
+  }
+  .heading-3 {
+    font-size: 1.25em;
+  }
+
+  .subtext {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.8em;
+  }
+
+  time {
+    background-color: rgb(var(--gray-light));
+    padding: 0px 2px;
+    border-radius: 2px;
+  }
+
+  .user,
+  .channel {
+    background-color: oklch(from var(--accent) l c h / 0.2);
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+</style>
+
+<script>
+  window.addEventListener("load", () => {
+    // spoiler element
+    // TODO: improve spoiler element
+    //   - prevent focus inside spoiler
+    //   - screenreader cannot read spoiler until clicked
+    const spoilerElements = document.querySelectorAll(".spoiler");
+    spoilerElements.forEach((_element) => {
+      const element = _element as HTMLSpanElement;
+      element.classList.add("clickable");
+      element.addEventListener("click", (e) => {
+        e.preventDefault();
+        element.classList.add("clicked");
+      });
+    });
+
+    // timestamp element
+    const relativeTimeElements = document.querySelectorAll(
+      'time[data-format="R"]',
+    );
+    relativeTimeElements.forEach((_element) => {
+      const element = _element as HTMLTimeElement;
+      const now = new Date();
+      const targetDate = new Date(element.dateTime);
+
+      const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+      const diffSeconds = Math.round((+targetDate - +now) / 1000);
+      let formattedString = element.innerHTML;
+      if (Math.abs(diffSeconds) >= 365 * 24 * 60 * 60) {
+        formattedString = rtf.format(
+          targetDate.getFullYear() - now.getFullYear(),
+          "years",
+        );
+      } else if (Math.abs(diffSeconds) >= 30 * 24 * 60 * 60) {
+        formattedString = rtf.format(
+          (targetDate.getFullYear() - now.getFullYear()) * 12 +
+            (targetDate.getMonth() - now.getMonth()),
+          "months",
+        );
+      } else if (Math.abs(diffSeconds) >= 24 * 60 * 60) {
+        formattedString = rtf.format(
+          Math.round(diffSeconds / (24 * 60 * 60)),
+          "days",
+        );
+      } else if (Math.abs(diffSeconds) >= 60 * 60) {
+        formattedString = rtf.format(
+          Math.round(diffSeconds / (60 * 60)),
+          "hours",
+        );
+      } else if (Math.abs(diffSeconds) >= 60) {
+        formattedString = rtf.format(Math.round(diffSeconds / 60), "minutes");
+      } else {
+        formattedString = rtf.format(diffSeconds, "seconds");
+      }
+
+      element.innerHTML = formattedString;
+    });
+  });
+</script>

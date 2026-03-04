@@ -8,6 +8,7 @@ import { canDisplayPost, formatReadableDate } from "../../utils";
 import { formatISODate } from "../../utils";
 import ArrowLeft from "../../icons/arrow-left.astro";
 import ArrowRight from "../../icons/arrow-right.astro";
+import AttachmentRenderer from "../../components/AttachmentRenderer.astro";
 
 export const prerender = false;
 Astro.response.headers.set("Cache-Control", "public, max-age=3600");
@@ -59,15 +60,13 @@ const parsedMessages = messages.map((message, index) => {
 <Layout
   title={formatReadableDate(parsedDate)}
   description="Lorem ipsum dolor sit amet"
->
-  {
+  >{
     parsedMessages.length === 0 && (
       <p style="text-align: center; padding: 3em 0em;">
         No posts found for this date.
       </p>
     )
-  }
-  {
+  }{
     parsedMessages.map((message) => (
       <>
         {message.showAuthor && (
@@ -79,13 +78,17 @@ const parsedMessages = messages.map((message, index) => {
             <p>{message.author.displayName}</p>
           </div>
         )}
-        <p><MessageRenderer ast={message.parsedContent} /></p>
-        {/* TODO: attachments */}
-        {/* {message.attachments.map((attachment) => attachment.)} */}
+        {!!message.content && (
+          <p><MessageRenderer ast={message.parsedContent} /></p>
+        )}
+        <div class="attachments">
+          {message.attachments.map((attachment) => (
+            <AttachmentRenderer attachment={attachment} />
+          ))}
+        </div>
       </>
     ))
-  }
-  <nav aria-label="Post navigation" class="post-nav">
+  }<nav aria-label="Post navigation" class="post-nav">
     {
       canDisplayPost(yesterday) ? (
         <a href={`/archive/${formatISODate(yesterday)}`}>
@@ -118,8 +121,8 @@ const parsedMessages = messages.map((message, index) => {
         <div />
       )
     }
-  </nav>
-</Layout>
+  </nav></Layout
+>
 
 <style is:global>
   .author {
@@ -177,5 +180,11 @@ const parsedMessages = messages.map((message, index) => {
   }
   .post-nav a time {
     font-weight: bold;
+  }
+
+  .attachments {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
   }
 </style>

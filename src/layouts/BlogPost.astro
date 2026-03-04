@@ -66,8 +66,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
           }
         </div>
         <div class="prose">
-          <div class="title">
-            {
+          <div class="title">{
               (!!pubDate || !!updatedDate) && (
                 <div class="date">
                   {!!pubDate && <FormattedDate date={pubDate} />}
@@ -78,10 +77,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
                   )}
                 </div>
               )
-            }
-            <h1>{title}</h1>
-          </div>
-          <slot />
+            }<h1>{title}</h1></div><slot />
         </div>
       </article>
     </main>

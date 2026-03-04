@@ -1,0 +1,74 @@
+---
+import type { Attachment } from "discord.js";
+import FileIcon from "../icons/file.astro";
+import DownloadIcon from "../icons/download.astro";
+
+interface Props {
+  attachment: Attachment;
+}
+
+const { attachment } = Astro.props;
+
+const renderFileSize = (size: number) => {
+  if (size > Math.pow(2, 20)) {
+    return `${(size / Math.pow(2, 20)).toFixed(2)} MB`;
+  }
+
+  if (size > Math.pow(2, 10)) {
+    return `${(size / Math.pow(2, 10)).toFixed(2)} KB`;
+  }
+
+  return `${size} bytes`;
+};
+---
+
+{
+  (() => {
+    if (attachment.contentType?.startsWith("image")) {
+      // TODO: check is spoiler
+      // attachment.spoiler
+      return <img src={attachment.proxyURL} class="attachment-img" />;
+    }
+
+    return (
+      <div class="attachment-other">
+        <FileIcon />
+        <div class="info">
+          <a href={attachment.proxyURL} target="_blank">
+            <DownloadIcon />
+            {attachment.name}
+          </a>
+          <p>{renderFileSize(attachment.size)}</p>
+        </div>
+      </div>
+    );
+  })()
+}
+
+<style is:global>
+  .attachment-other {
+    display: flex;
+    gap: 1ch;
+    align-items: center;
+
+    padding: 0 1ch;
+
+    border-radius: 1ch;
+    border: solid 2px rgb(var(--gray));
+    background-color: rgb(var(--gray-light));
+  }
+  .attachment-other > .info a {
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .attachment-other > .info svg {
+    display: inline-block;
+    height: 1em;
+    width: 1em;
+    margin-right: 0.5ch;
+    transform: translateY(2px);
+  }
+  .attachment-other > .info p {
+    margin: 0;
+  }
+</style>

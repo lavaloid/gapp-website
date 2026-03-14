@@ -1,49 +1,137 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import AttachmentRenderer from "../components/AttachmentRenderer.astro";
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import SocialLinks from "../components/SocialLinks.astro";
+import {
+  GAPP_PUBLISH_DELAY_DAYS,
+  SITE_DESCRIPTION,
+  SITE_TITLE,
+} from "../consts";
+import { getPostsFromDate } from "../discord";
+import { formatISODate, formatReadableDate } from "../utils";
+
+export const prerender = false;
+
+const TODAY = new Date(`${formatISODate(new Date())}T00:00:00Z`); // start of UTC day
+const dateToDisplay = new Date(
+  +TODAY - GAPP_PUBLISH_DELAY_DAYS * 24 * 60 * 60 * 1000,
+);
+
+// Find first image in posts from today
+const messages = await getPostsFromDate(dateToDisplay);
+const firstImage = messages
+  .find((message) =>
+    message.attachments.find((attachment) =>
+      attachment.contentType?.startsWith("image"),
+    ),
+  )
+  ?.attachments.find((attachment) =>
+    attachment.contentType?.startsWith("image"),
+  );
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This template
-				serves as a lightweight, minimally-styled starting point for anyone looking to build a personal
-				website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to
-				<a href="https://docs.astro.build/">read the docs</a>
-				or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>
-				by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <style>
+      main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2ch;
+      }
+
+      @media (max-width: 120ch) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      #info {
+        display: flex;
+        flex-direction: column;
+      }
+      #info h1 {
+        text-align: center;
+        flex-grow: 1;
+      }
+
+      #latest-post {
+        display: flex;
+        justify-content: center;
+        height: 100%;
+      }
+      #latest-post > div {
+        background-color: oklch(from var(--accent) 0.9 0.2 h);
+        border-radius: 1ch;
+        padding: 1ch;
+        margin: auto;
+      }
+      #latest-post header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #latest-post hgroup h2 {
+        margin: 0;
+      }
+      #latest-post hgroup p {
+        font-size: 1.2em;
+        margin: 0;
+      }
+      #latest-post header a {
+        text-decoration: none;
+				background-color: var(--accent);
+				color: white;
+				border-radius: 4px;
+				padding: 0 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <section id="info">
+        <h1>GAPP</h1>
+        <p>
+          Genuinely Approachable Pencil Puzzles (<abbr>GAPP</abbr>) is a daily
+          series of pencil puzzles hosted on Cracking the Cryptic's Discord
+          server. Each puzzle is handcrafted and tested by the GAPP team. It is
+          designed to require little to no prior experience to solve. The series
+          is inspired by
+          <a href="https://www.sudokutheory.com/gas/"
+            >Genuinely Approachable Sudoku (<abbr>GAS</abbr>)</a
+          >, a daily Sudoku series hosted on the same server.
+        </p>
+
+        <p>
+          Posts go up on this website one week after they're up in the Discord
+          server. If you'd like to see the puzzles as they're posted, or if
+          you'd like to discuss the puzzles, please head over to the
+          <code>#daily-pencil-puzzles</code> page in the server.
+        </p>
+
+        <SocialLinks />
+      </section>
+
+      <section id="latest-post">
+        <div>
+          <header>
+            <hgroup>
+              <h2>Latest Post</h2>
+              <p>{formatReadableDate(dateToDisplay)}</p>
+            </hgroup>
+
+            <a href={`/archive/${formatISODate(dateToDisplay)}`}>View post</a>
+          </header>
+
+          {!!firstImage && <AttachmentRenderer attachment={firstImage} />}
+        </div>
+      </section>
+    </main>
+
+    <Footer />
+  </body>
 </html>

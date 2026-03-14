@@ -28,7 +28,7 @@ export const getPostsFromDate = async (date: Date) => {
   // We're fetching messages at a certain date by constructing a fake message ID
   // at a specified date, then querying messages after that.
   const snowflakeId = SnowflakeUtil.generate({ timestamp: +date });
-  const messages = (
+  return (
     await channel.messages.fetch({
       after: `${snowflakeId}`,
       cache: true,
@@ -40,8 +40,4 @@ export const getPostsFromDate = async (date: Date) => {
     )
     .map((v) => v)
     .toReversed();
-
-
-    console.log(await messages)
-    return messages;
 };

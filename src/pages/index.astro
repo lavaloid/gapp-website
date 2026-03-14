@@ -12,8 +12,6 @@ import {
 import { getPostsFromDate } from "../discord";
 import { formatISODate, formatReadableDate } from "../utils";
 
-export const prerender = false;
-
 const TODAY = new Date(`${formatISODate(new Date())}T00:00:00Z`); // start of UTC day
 const dateToDisplay = new Date(
   +TODAY - GAPP_PUBLISH_DELAY_DAYS * 24 * 60 * 60 * 1000,

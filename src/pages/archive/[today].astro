@@ -9,7 +9,6 @@ import ArrowRight from "../../icons/arrow-right.astro";
 import AttachmentRenderer from "../../components/AttachmentRenderer.astro";
 import { parser } from "../../parser";
 
-export const prerender = false;
 Astro.response.headers.set("Cache-Control", "public, max-age=3600");
 
 const { today } = Astro.params;

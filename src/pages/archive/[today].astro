@@ -1,14 +1,13 @@
 ---
-import { SnowflakeUtil, TextChannel } from "discord.js";
-import { parse } from "discord-markdown-parser";
 import Layout from "../../layouts/BlogPost.astro";
 import MessageRenderer from "../../components/MessageRenderer.astro";
-import { getClient } from "../../discord";
+import { getPostsFromDate } from "../../discord";
 import { canDisplayPost, formatReadableDate } from "../../utils";
 import { formatISODate } from "../../utils";
 import ArrowLeft from "../../icons/arrow-left.astro";
 import ArrowRight from "../../icons/arrow-right.astro";
 import AttachmentRenderer from "../../components/AttachmentRenderer.astro";
+import { parser } from "../../parser";
 
 export const prerender = false;
 Astro.response.headers.set("Cache-Control", "public, max-age=3600");
@@ -24,33 +23,12 @@ if (!canDisplayPost(parsedDate)) {
 const yesterday = new Date(+parsedDate - 24 * 60 * 60 * 1000);
 const tomorrow = new Date(+parsedDate + 24 * 60 * 60 * 1000);
 
-const client = getClient();
-const channel = (await client.channels.fetch(
-  process.env.DISCORD_CHANNEL_ID || "",
-  { cache: true },
-)) as TextChannel;
-
-// We're fetching messages at a certain date by constructing a fake message ID
-// at a specified date, then querying messages after that.
-const snowflakeId = SnowflakeUtil.generate({ timestamp: +parsedDate });
-const messages = (
-  await channel.messages.fetch({
-    after: `${snowflakeId}`,
-    cache: true,
-    limit: 10,
-  })
-)
-  .filter(
-    (message) =>
-      message.createdAt <= new Date(+parsedDate + 24 * 60 * 60 * 1000),
-  )
-  .map((v) => v)
-  .toReversed();
+const messages = await getPostsFromDate(parsedDate)
 
 const parsedMessages = messages.map((message, index) => {
   return {
     ...message,
-    parsedContent: parse(message.content.trim()),
+    parsedContent: parser(message.content.trim(), { inline: true }),
     showAuthor:
       index === 0 || message.author.id !== messages.at(index - 1)?.author.id,
   };

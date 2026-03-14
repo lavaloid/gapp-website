@@ -59,6 +59,7 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
             </span>
           );
         case "autolink":
+        case "link":
         case "url":
           // TODO: format discord embed image links properly
           return (
@@ -167,7 +168,7 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
             <span class="channel">#{displayedName || "unknown-channel"}</span>
           );
         default:
-          console.log(JSON.stringify(ast.content, undefined, 2));
+          console.log(JSON.stringify(ast, undefined, 2));
           return (
             <span
               class="invalid-tag"

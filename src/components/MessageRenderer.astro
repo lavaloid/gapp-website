@@ -2,6 +2,7 @@
 import { type ASTNode } from "simple-markdown";
 import { Code } from "astro:components";
 import { getClient } from "../discord";
+import MessageCircle from "../icons/message-circle.astro";
 interface Props {
   ast: ASTNode;
 }
@@ -62,6 +63,18 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
         case "link":
         case "url":
           // TODO: format discord embed image links properly
+
+          // Message link
+          if (
+            ast.type === "url" &&
+            ast.target.startsWith("https://discord.com/channels/") &&
+            ast.target.split("/").length >= 7
+          ) {
+            return (
+              <a href={ast.target} class="message-link" target="_blank"><MessageCircle /> Discord message</a>
+            );
+          }
+
           return (
             <a href={ast.target} target="_blank">
               <Astro.self ast={ast.content} />
@@ -242,10 +255,25 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
   }
 
   .user,
-  .channel {
+  .channel,
+  .message-link {
     background-color: oklch(from var(--accent) l c h / 0.2);
     padding: 0 2px;
     border-radius: 2px;
+  }
+
+  .message-link {
+    text-decoration: none;
+  }
+  .message-link :global(svg) {
+    display: inline-block;
+    height: 1em;
+    width: 1em;
+    transform: translateY(2px);
+  }
+
+  .invalid-tag {
+    text-decoration: wavy underline red;
   }
 </style>
 

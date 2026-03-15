@@ -5,10 +5,7 @@ import Layout from "../layouts/BlogPost.astro";
 export const prerender = true;
 ---
 
-<Layout
-  title="About"
-  description="Lorem ipsum dolor sit amet"
->
+<Layout title="About" description="What even is GAPP?">
   <p>
     Genuinely Approachable Pencil Puzzles (<abbr>GAPP</abbr>) is a daily series
     of pencil puzzles hosted on the Cracking the Cryptic's Discord server. Each
@@ -20,19 +17,22 @@ export const prerender = true;
     >, a daily Sudoku series hosted on the same server.
   </p>
   <p>
-    Posts go up on this website one week after they're up in the Discord
-    server. If you'd like to see the puzzles as they're posted, or if
-    you'd like to discuss the puzzles, please head over to the 
+    Posts go up on this website one week after they're up in the Discord server.
+    If you'd like to see the puzzles as they're posted, or if you'd like to
+    discuss the puzzles, please head over to the
     <code>#daily-pencil-puzzles</code> page in the server.
   </p>
-  <SocialLinks />
+  <p>
+    <SocialLinks />
+  </p>
   <p>
     Each puzzle comes with time standards &mdash; we reward a
     <em>Speedy Sloth</em> 🦥 for solving a puzzle very quickly, a <em
       >Quick Crab</em
-    > 🦀 for solving a puzzle quickly, and anyone who solves a puzzle regardless
-    of their time can claim a different <em>bird</em> 🐦 every day! Occasionally, 
-    we also give out otters 🦦 for additional challenges.</p>
+    > 🦀 for solving a puzzle quickly, and anyone who solves a puzzle regardless of
+    their time can claim a different <em>bird</em> 🐦 every day! Occasionally, we
+    also give out otters 🦦 for additional challenges.
+  </p>
 
   <h2>Mind the GAPP</h2>
   <p>
@@ -70,27 +70,17 @@ export const prerender = true;
   </ul>
 
   <h3>Other packs</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Date</th>
-        <th>Download</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Leap Day 2024 Pack</td>
-        <td><time>2024-02-29</time></td>
-        <td>
-          <a
-            href="https://www.sudokutheory.com/gas/leaks/Never_Mind_the_GAS_Heres_the_GAPP_Leap.pdf"
-            target="_blank">Download</a
-          >
-        </td>
-      </tr>
-    </tbody>
-  </table>
+
+  <ul>
+    <li>
+      <a
+        href="https://www.sudokutheory.com/gas/leaks/Never_Mind_the_GAS_Heres_the_GAPP_Leap.pdf"
+        target="_blank"
+        ><strong>Never Mind the GAS, Here's the GAPP Leap</strong></a
+      > is a collaboration between the GAS and GAPP teams posted on the leap day of
+      2024 (29 February 2024).
+    </li>
+  </ul>
 
   <h2>Links</h2>
   <ul>
@@ -109,8 +99,17 @@ export const prerender = true;
 
   <h2 id="team">The team</h2>
 
-  <p>
-    The team currently consists of bakpao, Freddie Hand, jovi_al, Lavaloid, and
-    Rook.
-  </p>
+  <p>These are currently active members of the GAPP team:</p>
+  <ul>
+    <li><strong>Main setters:</strong> bakpao, Freddie Hand, jovi_al, Lavaloid, Rook</li>
+    <li><strong>Testers:</strong> Menderbug, shye, Tyrgannus, Walker</li>
+  </ul>
 </Layout>
+
+<style>
+  h2 {
+    border-top: dotted 3px black;
+    padding: 1rem 0.5ch;
+    margin: 1rem -0.5ch 0 -0.5ch;
+  }
+</style>

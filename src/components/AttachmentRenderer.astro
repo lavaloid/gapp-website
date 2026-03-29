@@ -2,6 +2,7 @@
 import type { Attachment } from "discord.js";
 import FileIcon from "../icons/file.astro";
 import DownloadIcon from "../icons/download.astro";
+import EyeOff from "../icons/eye-off.astro";
 
 interface Props {
   attachment: Attachment;
@@ -22,38 +23,95 @@ const renderFileSize = (size: number) => {
 };
 ---
 
-{
-  (() => {
-    if (attachment.contentType?.startsWith("image")) {
-      // TODO: check is spoiler
-      // attachment.spoiler
-      return <img src={attachment.proxyURL} class="attachment-img" />;
-    }
+<div class:list={["attachment", { "attachment-spoiler": attachment.spoiler }]}>{
+    (() => {
+      if (attachment.contentType?.startsWith("image")) {
+        // TODO: check is spoiler
+        // attachment.spoiler
+        return <img src={attachment.proxyURL} class="attachment-img" />;
+      }
 
-    return (
-      <div class="attachment-other">
-        <FileIcon />
-        <div class="info">
-          <a href={attachment.proxyURL} target="_blank">
-            <DownloadIcon />
-            {attachment.name}
-          </a>
-          <p>{renderFileSize(attachment.size)}</p>
+      return (
+        <div class="attachment-other">
+          <FileIcon />
+          <div class="info">
+            <a href={attachment.proxyURL} target="_blank">
+              <DownloadIcon />
+              {attachment.name}
+            </a>
+            <p>{renderFileSize(attachment.size)}</p>
+          </div>
         </div>
+      );
+    })()
+  }{
+    attachment.spoiler && (
+      <div class="attachment-spoiler-overlay">
+        <EyeOff />
+        <p>Spoiler</p>
       </div>
-    );
-  })()
-}
+    )
+}</div>
 
-<style is:global>
+<style>
+  .attachment-spoiler:not(.clickable):hover .attachment-spoiler-overlay,
+  .attachment-spoiler.clicked .attachment-spoiler-overlay {
+    display: none;
+  }
+  .attachment-spoiler.clickable {
+    cursor: pointer;
+  }
+  .attachment-spoiler.clickable:not(.clicked) * {
+    pointer-events: none;
+  }
+
+  .attachment-spoiler .attachment-img,
+  .attachment-spoiler .attachment-other {
+    filter: blur(50px) brightness(0.5);
+  }
+  .attachment-spoiler:not(.clickable):hover *,
+  .attachment-spoiler.clicked * {
+    filter: none;
+  }
+
+  .attachment-img {
+    width: auto;
+    max-width: 100%;
+    margin: auto;
+  }
+
+  .attachment-spoiler-overlay {
+    background-color: rgba(var(--gray-dark), 0.7);
+    color: white;
+    position: absolute;
+    inset: 0;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .attachment-spoiler-overlay p {
+    font-size: 1.5em;
+    font-weight: bold;
+  }
+  .attachment-spoiler-overlay :global(svg) {
+    width: 2em;
+    height: 2em;
+  }
+
+  .attachment {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1ch;
+  }
+
   .attachment-other {
     display: flex;
     gap: 1ch;
     align-items: center;
 
     padding: 0 1ch;
-
-    border-radius: 1ch;
     border: solid 2px rgb(var(--gray));
     background-color: rgb(var(--gray-light));
   }
@@ -72,3 +130,18 @@ const renderFileSize = (size: number) => {
     margin: 0;
   }
 </style>
+
+<script>
+  window.addEventListener("load", () => {
+    const spoilerElements = document.querySelectorAll(".attachment-spoiler");
+    spoilerElements.forEach((_element) => {
+      const element = _element as HTMLDivElement;
+      element.classList.add("clickable");
+      element.addEventListener("click", (e) => {
+        e.preventDefault();
+        element.classList.add("clicked");
+        element.querySelector(".attachment-spoiler-overlay")?.remove();
+      });
+    });
+  });
+</script>

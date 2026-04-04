@@ -22,6 +22,8 @@ export const formatReadableDate = (date: Date) =>
     year: "numeric",
   });
 
+export const startOfDate = (date: Date) => new Date(formatISODate(date));
+
 export const canDisplayPost = (date: Date) =>
   date >= GAPP_START_DATE &&
   (+new Date() - +date) / (24 * 60 * 60 * 1000) > GAPP_PUBLISH_DELAY_DAYS;

@@ -3,6 +3,9 @@ import { type ASTNode } from "simple-markdown";
 import { Code } from "astro:components";
 import { getClient } from "../discord";
 import MessageCircle from "../icons/message-circle.astro";
+import CalendarDays from "../icons/calendar-days.astro";
+import { SnowflakeUtil } from "discord.js";
+import { formatISODate, formatReadableDate } from "../utils";
 interface Props {
   ast: ASTNode;
 }
@@ -65,13 +68,40 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
           // TODO: format discord embed image links properly
 
           // Message link
+          let msgDate = null;
           if (
             ast.type === "url" &&
             ast.target.startsWith("https://discord.com/channels/") &&
             ast.target.split("/").length >= 7
           ) {
+            // Special case for links to GAPP posts
+            const channelId = ast.target.split("/")[5];
+            const messageId = ast.target.split("/")[6];
+            if (channelId === process.env.DISCORD_CHANNEL_ID) {
+              const msgTimestamp =
+                SnowflakeUtil.deconstruct(messageId).timestamp.toString();
+              msgDate = new Date(+msgTimestamp);
+
+              // reset it to null if date is error
+              if (isNaN(+msgDate)) msgDate = null;
+            }
+
+            if (msgDate) {
+              return (
+                <a
+                  href={`/archive/${formatISODate(msgDate)}`}
+                  class="message-link"
+                  target="_blank"
+                >
+                  <CalendarDays /> Archive: {formatReadableDate(msgDate)}
+                </a>
+              );
+            }
+
             return (
-              <a href={ast.target} class="message-link" target="_blank"><MessageCircle /> Discord message</a>
+              <a href={ast.target} class="message-link" target="_blank">
+                <MessageCircle /> Discord message
+              </a>
             );
           }
 

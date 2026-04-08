@@ -22,14 +22,27 @@ if (!canDisplayPost(parsedDate)) {
 const yesterday = new Date(+parsedDate - 24 * 60 * 60 * 1000);
 const tomorrow = new Date(+parsedDate + 24 * 60 * 60 * 1000);
 
-const messages = await getPostsFromDate(parsedDate)
+const messages = await getPostsFromDate(parsedDate);
 
 const parsedMessages = messages.map((message, index) => {
+  const ROLE_TAG_PREFIX = `<@&${process.env.DISCORD_ROLE_TAG}>`;
+  const trimmedMessage = message.content.trim();
+  const trimmedMessageNoPrefix = trimmedMessage.startsWith(ROLE_TAG_PREFIX)
+    ? trimmedMessage.slice(ROLE_TAG_PREFIX.length).trim()
+    : trimmedMessage;
+
   return {
     ...message,
-    parsedContent: parser(message.content.trim(), { inline: true }),
+    parsedContent: parser(trimmedMessageNoPrefix, { inline: true }),
+    // Author should be shown when:
+    // - it's the first post
+    // - author is different from previous one
+    // - message starts with role ping (this is usually for MtG posts,
+    //   which should be counted as a separate "post")
     showAuthor:
-      index === 0 || message.author.id !== messages.at(index - 1)?.author.id,
+      index === 0 ||
+      message.author.id !== messages.at(index - 1)?.author.id ||
+      trimmedMessage.startsWith(ROLE_TAG_PREFIX),
   };
 });
 ---

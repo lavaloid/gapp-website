@@ -61,11 +61,13 @@ const parsedMessages = messages.map((message, index) => {
       <>
         {message.showAuthor && (
           <div class="author">
-            <img
-              class="author-avatar"
-              src={message.author.avatarURL({ size: 64, forceStatic: true })}
-            />
-            <p>{message.author.displayName}</p>
+            {!message.authorOverride && (
+              <img
+                class="author-avatar"
+                src={message.author.avatarURL({ size: 64, forceStatic: true })}
+              />
+            )}
+            <p>{message.authorOverride || message.author.displayName}</p>
           </div>
         )}
         {!!message.content && (

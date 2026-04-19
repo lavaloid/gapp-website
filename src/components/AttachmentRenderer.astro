@@ -26,21 +26,16 @@ const renderFileSize = (size: number) => {
 <div class:list={["attachment", { "attachment-spoiler": attachment.spoiler }]}>{
     (() => {
       if (attachment.contentType?.startsWith("image")) {
-        // TODO: check is spoiler
-        // attachment.spoiler
         return <img src={attachment.proxyURL} class="attachment-img" />;
       }
 
+      // TODO: how do you even fix astro adding whitespaces where theres a line break helpppppp
       return (
         <div class="attachment-other">
           <FileIcon />
-          <div class="info">
-            <a href={attachment.proxyURL} target="_blank">
-              <DownloadIcon />
+          <div class="info"><a href={attachment.proxyURL} target="_blank"><DownloadIcon />
               {attachment.name}
-            </a>
-            <p>{renderFileSize(attachment.size)}</p>
-          </div>
+            </a><p>{renderFileSize(attachment.size)}</p></div>
         </div>
       );
     })()
@@ -105,7 +100,7 @@ const renderFileSize = (size: number) => {
     height: 2em;
   }
 
-  .attachment {
+  .attachment > * {
     position: relative;
     overflow: hidden;
     border-radius: 1ch;
@@ -124,7 +119,7 @@ const renderFileSize = (size: number) => {
     text-decoration: none;
     font-weight: bold;
   }
-  .attachment-other > .info svg {
+  .attachment-other > .info :global(svg) {
     display: inline-block;
     height: 1em;
     width: 1em;

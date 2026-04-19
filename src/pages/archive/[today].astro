@@ -67,7 +67,7 @@ const parsedMessages = messages.map((message, index) => {
                 src={message.author.avatarURL({ size: 64, forceStatic: true })}
               />
             )}
-            <p>{message.authorOverride || message.author.displayName}</p>
+            <p>{message.authorOverride || message.member?.nickname || message.author.displayName}</p>
           </div>
         )}
         {!!message.content && (

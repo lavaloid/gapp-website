@@ -70,6 +70,7 @@ export const getPostsFromDate = async (date: Date) => {
     return [
       {
         ...puzzleMessage,
+        member: null,
         authorOverride: authorName,
       },
     ];
@@ -77,17 +78,31 @@ export const getPostsFromDate = async (date: Date) => {
     // We're fetching messages at a certain date by constructing a fake message ID
     // at a specified date, then querying messages after that.
     const snowflakeId = SnowflakeUtil.generate({ timestamp: +date });
-    return (
-      await channel.messages.fetch({
-        after: `${snowflakeId}`,
-        cache: true,
-        limit: 10,
-      })
-    )
-      .filter(
-        (message) => message.createdAt <= new Date(+date + 24 * 60 * 60 * 1000),
+    return Promise.all(
+      (
+        await channel.messages.fetch({
+          after: `${snowflakeId}`,
+          cache: true,
+          limit: 10,
+        })
       )
-      .map((v) => ({ ...v, authorOverride: undefined })) // typescript nonsense
-      .toReversed();
+        .filter(
+          (message) =>
+            message.createdAt <= new Date(+date + 24 * 60 * 60 * 1000),
+        )
+        .map(async (v) => {
+          // because of discord weirdness the `member` field might still be null
+          // even if the user is in the server, so we try to fetch their name manually
+          let member = null;
+          if (v.member) {
+            member = v.member;
+          } else {
+            member = await channel.guild.members.fetch({ user: v.author.id, cache: true });
+          }
+
+          return { ...v, member, authorOverride: undefined }; // typescript nonsense
+        })
+        .toReversed(),
+    );
   }
 };

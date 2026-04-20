@@ -97,7 +97,11 @@ export const getPostsFromDate = async (date: Date) => {
           if (v.member) {
             member = v.member;
           } else {
-            member = await channel.guild.members.fetch({ user: v.author.id, cache: true });
+            try {
+              member = await channel.guild.members.fetch({ user: v.author.id, cache: true });
+            } catch (err) {
+              // user isn't in server, skip fetching
+            }
           }
 
           return { ...v, member, authorOverride: undefined }; // typescript nonsense

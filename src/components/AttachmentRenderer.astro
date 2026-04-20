@@ -33,7 +33,7 @@ const renderFileSize = (size: number) => {
       return (
         <div class="attachment-other">
           <FileIcon />
-          <div class="info"><a href={attachment.proxyURL} target="_blank"><DownloadIcon />
+          <div class="info"><a href={attachment.url} target="_blank"><DownloadIcon />
               {attachment.name}
             </a><p>{renderFileSize(attachment.size)}</p></div>
         </div>

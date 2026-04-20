@@ -1,5 +1,6 @@
 ---
 import { GAPP_START_DATE, SITE_TITLE } from "../consts";
+import TriangleAlert from "../icons/triangle-alert.astro";
 import { formatISODate } from "../utils";
 import HeaderLink from "./HeaderLink.astro";
 
@@ -28,6 +29,14 @@ const TODAY = new Date();
       </form>
     </div>
   </nav>
+  <div class="beta-warning">
+    <TriangleAlert />
+    <p>
+      For preview only. <strong
+        >Links to the website may break in the future.</strong
+      >
+    </p>
+  </div>
 </header>
 <style>
   header {
@@ -99,6 +108,22 @@ const TODAY = new Date();
     .social-links {
       display: none;
     }
+  }
+
+  .beta-warning {
+    display: flex;
+    gap: 8px;
+    background-color: #dcba98;
+    color: #432100;
+    padding: 0.5ch;
+    margin-top: 1rem;
+  }
+  .beta-warning :global(svg) {
+    min-width: 1em;
+  }
+  .beta-warning p {
+    margin: 0;
+    font-size: 0.8em;
   }
 </style>
 

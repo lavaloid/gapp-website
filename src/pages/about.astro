@@ -1,11 +1,12 @@
 ---
 import SocialLinks from "../components/SocialLinks.astro";
+import { SITE_DESCRIPTION } from "../consts";
 import Layout from "../layouts/BlogPost.astro";
 
 export const prerender = true;
 ---
 
-<Layout title="About" description="What even is GAPP?">
+<Layout title="About" description={SITE_DESCRIPTION}>
   <p>
     Genuinely Approachable Pencil Puzzles (<abbr>GAPP</abbr>) is a daily series
     of pencil puzzles hosted on the Cracking the Cryptic's Discord server. Each

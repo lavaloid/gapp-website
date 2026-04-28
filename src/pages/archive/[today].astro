@@ -8,6 +8,7 @@ import ArrowLeft from "../../icons/arrow-left.astro";
 import ArrowRight from "../../icons/arrow-right.astro";
 import AttachmentRenderer from "../../components/AttachmentRenderer.astro";
 import { parser } from "../../parser";
+import { SITE_DESCRIPTION } from "../../consts";
 
 Astro.response.headers.set("Cache-Control", "public, max-age=3600");
 
@@ -45,11 +46,14 @@ const parsedMessages = messages.map((message, index) => {
       trimmedMessage.startsWith(ROLE_TAG_PREFIX),
   };
 });
+
+// Metadata for opengraph and stuff
+const description = parsedMessages.find((message)=> message.content)?.content.trim().split("\n")[0]
 ---
 
 <Layout
   title={formatReadableDate(parsedDate)}
-  description="Lorem ipsum dolor sit amet"
+  description={description || SITE_DESCRIPTION}
   >{
     parsedMessages.length === 0 && (
       <p style="text-align: center; padding: 3em 0em;">

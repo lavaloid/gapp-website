@@ -41,10 +41,10 @@ const renderFileSize = (size: number) => {
     })()
   }{
     attachment.spoiler && (
-      <div class="attachment-spoiler-overlay">
+      <button class="attachment-spoiler-overlay">
         <EyeOff />
         <p>Spoiler</p>
-      </div>
+      </button>
     )
 }</div>
 
@@ -84,6 +84,7 @@ const renderFileSize = (size: number) => {
     transform: translate(-50%, -50%);
     padding: 1ch;
     border-radius: 1ch;
+    border: 0;
     
     display: flex;
     align-items: center;
@@ -100,7 +101,7 @@ const renderFileSize = (size: number) => {
     height: 2em;
   }
 
-  .attachment > * {
+  .attachment {
     position: relative;
     overflow: hidden;
     border-radius: 1ch;

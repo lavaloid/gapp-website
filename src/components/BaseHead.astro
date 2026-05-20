@@ -8,7 +8,7 @@ import { SITE_TITLE } from "../consts";
 interface Props {
   title: string;
   description: string;
-  image?: ImageMetadata;
+  image?: ImageMetadata | string;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -50,7 +50,12 @@ const { title, description, image } = Astro.props;
 <meta property="og:description" content={description} />
 {
   !!image && (
-    <meta property="og:image" content={new URL(image.src, Astro.url)} />
+    <meta
+      property="og:image"
+      content={
+        typeof image === "string" ? image : new URL(image.src, Astro.url)
+      }
+    />
   )
 }
 
@@ -61,6 +66,11 @@ const { title, description, image } = Astro.props;
 <meta property="twitter:description" content={description} />
 {
   !!image && (
-    <meta property="twitter:image" content={new URL(image.src, Astro.url)} />
+    <meta
+      property="twitter:image"
+      content={
+        typeof image === "string" ? image : new URL(image.src, Astro.url)
+      }
+    />
   )
 }

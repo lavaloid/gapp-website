@@ -48,12 +48,23 @@ const parsedMessages = messages.map((message, index) => {
 });
 
 // Metadata for opengraph and stuff
-const description = parsedMessages.find((message)=> message.content)?.content.trim().split("\n")[0]
+const description = parsedMessages.find((message)=> message.content)?.content.trim().split("\n")[0];
+const mainImage = parsedMessages.find((message) =>
+    message.attachments.find(
+      (attachment) =>
+        attachment.contentType?.startsWith("image") && !attachment.spoiler,
+    ),
+  )
+  ?.attachments.find(
+    (attachment) =>
+      attachment.contentType?.startsWith("image") && !attachment.spoiler,
+  );
 ---
 
 <Layout
   title={formatReadableDate(parsedDate)}
   description={description || SITE_DESCRIPTION}
+  heroImage={mainImage?.url}
   >{
     parsedMessages.length === 0 && (
       <p style="text-align: center; padding: 3em 0em;">

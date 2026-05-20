@@ -10,7 +10,7 @@ type Props = {
   description: string;
   pubDate?: Date;
   updatedDate?: Date;
-  heroImage?: ImageMetadata;
+  heroImage?: ImageMetadata | string;
 };
 
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;

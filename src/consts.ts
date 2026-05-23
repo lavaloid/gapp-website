@@ -7,6 +7,6 @@ export const GAPP_PUBLISH_DELAY_DAYS = 7;
  * This is the date of the first GAPP post that is posted in #daily-pencil-puzzles, and not
  * copy-pasted from #other-testing-submissions
  */
-export const GAPP_CHANNEL_START_DATE = new Date(2021, 10, 21); // 2021 Nov 21
+export const GAPP_CHANNEL_START_DATE = new Date("2021-11-21T00:00:00.000Z"); // 2021 Nov 21
 
 export const RSS_POST_COUNT = 32;

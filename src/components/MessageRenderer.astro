@@ -1,10 +1,9 @@
 ---
 import { type ASTNode } from "simple-markdown";
 import { Code } from "astro:components";
-import { getClient } from "../discord";
+import { getClient, getDateOfPost } from "../discord";
 import MessageCircle from "../icons/message-circle.astro";
 import CalendarDays from "../icons/calendar-days.astro";
-import { SnowflakeUtil } from "discord.js";
 import { formatISODate, formatReadableDate } from "../utils";
 interface Props {
   ast: ASTNode;
@@ -28,7 +27,7 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
 
 {
   !Array.isArray(ast) &&
-    (() => {
+    await (async () => {
       switch (ast.type) {
         case "text":
           return ast.content;
@@ -78,12 +77,7 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
             const channelId = ast.target.split("/")[5];
             const messageId = ast.target.split("/")[6];
             if (channelId === process.env.DISCORD_CHANNEL_ID) {
-              const msgTimestamp =
-                SnowflakeUtil.deconstruct(messageId).timestamp.toString();
-              msgDate = new Date(+msgTimestamp);
-
-              // reset it to null if date is error
-              if (isNaN(+msgDate)) msgDate = null;
+              msgDate = await getDateOfPost(messageId);
             }
 
             if (msgDate) {

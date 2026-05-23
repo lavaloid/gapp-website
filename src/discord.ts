@@ -18,6 +18,30 @@ const client = new Client({
 await client.login(process.env.DISCORD_APP_TOKEN);
 
 export const getClient = () => client;
+export const getChannel = async () => {
+  const client = getClient();
+  return (await client.channels.fetch(process.env.DISCORD_CHANNEL_ID || "", {
+    cache: true,
+  })) as TextChannel;
+};
+
+export const getPreChannelMessages = async (channel: TextChannel) => {
+  const snowflakeId = SnowflakeUtil.generate({ timestamp: +GAPP_START_DATE });
+  return (
+    await channel.messages.fetch({
+      after: `${snowflakeId}`,
+      cache: true,
+      limit:
+        Math.round(
+          (+GAPP_CHANNEL_START_DATE - +GAPP_START_DATE) / (24 * 60 * 60 * 1000),
+        ) *
+          2 +
+        8,
+    })
+  )
+    .map((v) => v)
+    .toReversed();
+};
 
 export const getPostsFromDate = async (date: Date) => {
   /**
@@ -26,11 +50,7 @@ export const getPostsFromDate = async (date: Date) => {
    * on GAPP_CHANNEL_START_DATE. So we should handle those posts differently
    */
 
-  const client = getClient();
-  const channel = (await client.channels.fetch(
-    process.env.DISCORD_CHANNEL_ID || "",
-    { cache: true },
-  )) as TextChannel;
+  const channel = await getChannel();
 
   if (date < GAPP_CHANNEL_START_DATE) {
     /**
@@ -40,22 +60,7 @@ export const getPostsFromDate = async (date: Date) => {
      *    - bakpao: <date>, puzzle by <author>
      *    - CopynPaste: <the actual puzzle content>
      */
-    const snowflakeId = SnowflakeUtil.generate({ timestamp: +GAPP_START_DATE });
-    const rawMessages = (
-      await channel.messages.fetch({
-        after: `${snowflakeId}`,
-        cache: true,
-        limit:
-          Math.round(
-            (+GAPP_CHANNEL_START_DATE - +GAPP_START_DATE) /
-              (24 * 60 * 60 * 1000),
-          ) *
-            2 +
-          8,
-      })
-    )
-      .map((v) => v)
-      .toReversed();
+    const rawMessages = await getPreChannelMessages(channel);
 
     const dateIndex = Math.round(
       (+date - +GAPP_START_DATE) / (24 * 60 * 60 * 1000),
@@ -98,7 +103,10 @@ export const getPostsFromDate = async (date: Date) => {
             member = v.member;
           } else {
             try {
-              member = await channel.guild.members.fetch({ user: v.author.id, cache: true });
+              member = await channel.guild.members.fetch({
+                user: v.author.id,
+                cache: true,
+              });
             } catch (err) {
               // user isn't in server, skip fetching
             }
@@ -109,4 +117,32 @@ export const getPostsFromDate = async (date: Date) => {
         .toReversed(),
     );
   }
+};
+
+export const getDateOfPost = async (messageId: string) => {
+  const msgTimestamp =
+    SnowflakeUtil.deconstruct(messageId).timestamp.toString();
+  const msgDate = new Date(+msgTimestamp);
+
+  // Error parsing, return null
+  if (isNaN(+msgDate)) return null;
+
+  if (msgDate >= GAPP_CHANNEL_START_DATE) {
+    return msgDate;
+  }
+
+  // if before gapp channel, we manually find the index by traversing each
+  const channel = await getChannel();
+  const rawMessages = await getPreChannelMessages(channel);
+
+  const index = rawMessages.findIndex((message) => message.id === messageId);
+  if (index === -1) {
+    return null;
+  }
+  
+  const daysSinceStartDate = Math.ceil((index - 9) / 2);
+  console.log(daysSinceStartDate);
+  return new Date(
+    +GAPP_START_DATE + 24 * 60 * 60 * 1000 * daysSinceStartDate,
+  );
 };

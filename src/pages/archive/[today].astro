@@ -1,14 +1,14 @@
 ---
 import Layout from "../../layouts/BlogPost.astro";
 import MessageRenderer from "../../components/MessageRenderer.astro";
-import { getPostsFromDate, trimRolePrefix } from "../../discord";
+import { getPostsFromDate, ROLE_TAG_PREFIX, trimRolePrefix } from "../../discord";
 import { canDisplayPost, formatReadableDate } from "../../utils";
 import { formatISODate } from "../../utils";
 import ArrowLeft from "../../icons/arrow-left.astro";
 import ArrowRight from "../../icons/arrow-right.astro";
 import AttachmentRenderer from "../../components/AttachmentRenderer.astro";
 import { parser } from "../../parser";
-import { ROLE_TAG_PREFIX, SITE_DESCRIPTION } from "../../consts";
+import { SITE_DESCRIPTION } from "../../consts";
 
 Astro.response.headers.set("Cache-Control", "public, max-age=3600");
 

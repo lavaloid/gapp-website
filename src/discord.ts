@@ -5,7 +5,7 @@ import {
   TextChannel,
 } from "discord.js";
 import dotenv from "dotenv";
-import { GAPP_CHANNEL_START_DATE, GAPP_START_DATE, ROLE_TAG_PREFIX } from "./consts";
+import { GAPP_CHANNEL_START_DATE, GAPP_START_DATE } from "./consts";
 
 dotenv.config();
 const client = new Client({
@@ -139,13 +139,12 @@ export const getDateOfPost = async (messageId: string) => {
   if (index === -1) {
     return null;
   }
-  
+
   const daysSinceStartDate = Math.ceil((index - 9) / 2);
-  return new Date(
-    +GAPP_START_DATE + 24 * 60 * 60 * 1000 * daysSinceStartDate,
-  );
+  return new Date(+GAPP_START_DATE + 24 * 60 * 60 * 1000 * daysSinceStartDate);
 };
 
+export const ROLE_TAG_PREFIX = `<@&${process.env.DISCORD_ROLE_TAG}>`;
 export const trimRolePrefix = (message: string) => {
   return message.startsWith(ROLE_TAG_PREFIX)
     ? message.slice(ROLE_TAG_PREFIX.length).trim()

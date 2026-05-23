@@ -8,7 +8,7 @@ import ArrowLeft from "../../icons/arrow-left.astro";
 import ArrowRight from "../../icons/arrow-right.astro";
 import AttachmentRenderer from "../../components/AttachmentRenderer.astro";
 import { parser } from "../../parser";
-import { SITE_DESCRIPTION } from "../../consts";
+import { ROLE_TAG_PREFIX, SITE_DESCRIPTION } from "../../consts";
 
 Astro.response.headers.set("Cache-Control", "public, max-age=3600");
 
@@ -25,12 +25,15 @@ const tomorrow = new Date(+parsedDate + 24 * 60 * 60 * 1000);
 
 const messages = await getPostsFromDate(parsedDate);
 
+const trimRolePrefix = (message: string) => {
+  return message.startsWith(ROLE_TAG_PREFIX)
+    ? message.slice(ROLE_TAG_PREFIX.length).trim()
+    : message;
+};
+
 const parsedMessages = messages.map((message, index) => {
-  const ROLE_TAG_PREFIX = `<@&${process.env.DISCORD_ROLE_TAG}>`;
   const trimmedMessage = message.content.trim();
-  const trimmedMessageNoPrefix = trimmedMessage.startsWith(ROLE_TAG_PREFIX)
-    ? trimmedMessage.slice(ROLE_TAG_PREFIX.length).trim()
-    : trimmedMessage;
+  const trimmedMessageNoPrefix = trimRolePrefix(trimmedMessage);
 
   return {
     ...message,
@@ -48,8 +51,11 @@ const parsedMessages = messages.map((message, index) => {
 });
 
 // Metadata for opengraph and stuff
-const description = parsedMessages.find((message)=> message.content)?.content.trim().split("\n")[0];
-const mainImage = parsedMessages.find((message) =>
+const description = trimRolePrefix(
+  parsedMessages.find((message) => message.content)?.content.trim() ?? "",
+).split("\n")[0];
+const mainImage = parsedMessages
+  .find((message) =>
     message.attachments.find(
       (attachment) =>
         attachment.contentType?.startsWith("image") && !attachment.spoiler,

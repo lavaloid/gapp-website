@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/BlogPost.astro";
 import MessageRenderer from "../../components/MessageRenderer.astro";
-import { getPostsFromDate } from "../../discord";
+import { getPostsFromDate, trimRolePrefix } from "../../discord";
 import { canDisplayPost, formatReadableDate } from "../../utils";
 import { formatISODate } from "../../utils";
 import ArrowLeft from "../../icons/arrow-left.astro";
@@ -24,12 +24,6 @@ const yesterday = new Date(+parsedDate - 24 * 60 * 60 * 1000);
 const tomorrow = new Date(+parsedDate + 24 * 60 * 60 * 1000);
 
 const messages = await getPostsFromDate(parsedDate);
-
-const trimRolePrefix = (message: string) => {
-  return message.startsWith(ROLE_TAG_PREFIX)
-    ? message.slice(ROLE_TAG_PREFIX.length).trim()
-    : message;
-};
 
 const parsedMessages = messages.map((message, index) => {
   const trimmedMessage = message.content.trim();

@@ -8,7 +8,7 @@ import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://gapp-puzzles.com',
   integrations: [mdx(), sitemap()],
   output: "server",
   adapter: vercel(),

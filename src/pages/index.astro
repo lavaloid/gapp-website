@@ -53,9 +53,18 @@ const firstImage = messages
         display: flex;
         flex-direction: column;
       }
-      #info h1 {
+      #info hgroup:has(h1) {
         text-align: center;
+        margin: 0;
         flex-grow: 1;
+      }
+      #info hgroup:has(h1) h1 {
+        margin: 0;
+      }
+      #info hgroup:has(h1) p {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0;
       }
 
       #latest-post {
@@ -95,7 +104,10 @@ const firstImage = messages
     <Header />
     <main>
       <section id="info">
-        <h1>GAPP</h1>
+        <hgroup>
+          <h1>GAPP</h1>
+          <p>Genuinely Approachable Pencil Puzzles</p>
+        </hgroup>
         <p>
           Genuinely Approachable Pencil Puzzles (<abbr>GAPP</abbr>) is a daily
           series of pencil puzzles hosted on Cracking the Cryptic's Discord

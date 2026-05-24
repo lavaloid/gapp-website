@@ -1,5 +1,5 @@
 ---
-import SocialLinks from "../components/SocialLinks.astro";
+import DiscordLink from "../components/DiscordLink.astro";
 import { SITE_DESCRIPTION } from "../consts";
 import Layout from "../layouts/BlogPost.astro";
 
@@ -23,9 +23,9 @@ export const prerender = true;
     discuss the puzzles, please head over to the
     <code>#daily-pencil-puzzles</code> page in the server.
   </p>
-  <p>
-    <SocialLinks />
-  </p>
+  <div style="display: flex; justify-content: center;">
+    <DiscordLink displayText />
+  </div>
   <p>
     Each puzzle comes with time standards &mdash; we reward a
     <em>Speedy Sloth</em> 🦥 for solving a puzzle very quickly, a <em

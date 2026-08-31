@@ -5,7 +5,12 @@ import {
   TextChannel,
 } from "discord.js";
 import dotenv from "dotenv";
-import { GAPP_CHANNEL_START_DATE, GAPP_START_DATE } from "./consts";
+import {
+  GAPP_CHANNEL_START_DATE,
+  GAPP_START_DATE,
+  POST_COUNT_OFFSETS,
+} from "./consts";
+import { formatISODate } from "./utils";
 
 dotenv.config();
 const client = new Client({
@@ -83,19 +88,26 @@ export const getPostsFromDate = async (date: Date) => {
     // We're fetching messages at a certain date by constructing a fake message ID
     // at a specified date, then querying messages after that.
     const snowflakeId = SnowflakeUtil.generate({ timestamp: +date });
+
+    const allFetchedPosts = [
+      ...(await channel.messages.fetch({
+        after: `${snowflakeId}`,
+        cache: true,
+        limit: 10,
+      })),
+    ].toReversed();
+    const todayPostCount = allFetchedPosts.filter(
+      ([_key, message]) =>
+        message.createdAt <= new Date(+date + 24 * 60 * 60 * 1000),
+    ).length;
+
+    const { start = 0, end = 0 } =
+      POST_COUNT_OFFSETS[formatISODate(date)] || {};
+
     return Promise.all(
-      (
-        await channel.messages.fetch({
-          after: `${snowflakeId}`,
-          cache: true,
-          limit: 10,
-        })
-      )
-        .filter(
-          (message) =>
-            message.createdAt <= new Date(+date + 24 * 60 * 60 * 1000),
-        )
-        .map(async (v) => {
+      allFetchedPosts
+        .slice(start, todayPostCount + end)
+        .map(async ([_key, v]) => {
           // because of discord weirdness the `member` field might still be null
           // even if the user is in the server, so we try to fetch their name manually
           let member = null;
@@ -113,8 +125,7 @@ export const getPostsFromDate = async (date: Date) => {
           }
 
           return { ...v, member, authorOverride: undefined }; // typescript nonsense
-        })
-        .toReversed(),
+        }),
     );
   }
 };

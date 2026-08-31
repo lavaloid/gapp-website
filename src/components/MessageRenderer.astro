@@ -5,6 +5,7 @@ import { getClient, getDateOfPost } from "../discord";
 import MessageCircle from "../icons/message-circle.astro";
 import CalendarDays from "../icons/calendar-days.astro";
 import { formatISODate, formatReadableDate } from "../utils";
+import type { TextChannel } from "discord.js";
 interface Props {
   ast: ASTNode;
 }
@@ -15,19 +16,23 @@ const TYPES_REQUIRING_API = ["user", "channel"];
 let displayedName = "";
 if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
   const client = getClient();
-  if (ast.type === "user") {
-    const user = await client.users.fetch(ast.id, { cache: true });
-    displayedName = user.displayName;
-  } else if (ast.type === "channel") {
-    const channel = await client.channels.fetch(ast.id, { cache: true });
-    displayedName = channel.name;
+  try {
+    if (ast.type === "user") {
+      const user = await client.users.fetch(ast.id, { cache: true });
+      displayedName = user.displayName;
+    } else if (ast.type === "channel") {
+      const channel = await client.channels.fetch(ast.id, { cache: true });
+      displayedName = (channel as TextChannel | null)?.name || "";
+    }
+  } catch {
+    displayedName = "";
   }
 }
 ---
 
 {
   !Array.isArray(ast) &&
-    await (async () => {
+    (await (async () => {
       switch (ast.type) {
         case "text":
           return ast.content;
@@ -202,7 +207,7 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
           return <span class="user">@{displayedName || "Unknnown user"}</span>;
         case "channel":
           return (
-            <span class="channel">#{displayedName || "unknown-channel"}</span>
+            <span class="channel">#{displayedName || "(unknown channel)"}</span>
           );
         default:
           console.log(JSON.stringify(ast, undefined, 2));
@@ -215,7 +220,7 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
             </span>
           );
       }
-    })()
+    })())
 }
 {Array.isArray(ast) && ast.map((node) => <Astro.self ast={node} />)}
 <style>

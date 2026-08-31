@@ -240,6 +240,7 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
     border-radius: 2px;
   }
   .spoiler * {
+    opacity: 0;
     color: transparent;
   }
   .spoiler:not(.clickable):hover,
@@ -248,6 +249,7 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
   }
   .spoiler:not(.clickable):hover *,
   .spoiler.clicked * {
+    opacity: 1;
     color: revert;
   }
   .spoiler.clickable {
@@ -309,9 +311,6 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
 <script>
   window.addEventListener("load", () => {
     // spoiler element
-    // TODO: improve spoiler element
-    //   - prevent focus inside spoiler
-    //   - screenreader cannot read spoiler until clicked
     const spoilerElements = document.querySelectorAll(".spoiler");
     spoilerElements.forEach((_element) => {
       const element = _element as HTMLSpanElement;
@@ -319,6 +318,12 @@ if (!Array.isArray(ast) && TYPES_REQUIRING_API.includes(ast.type)) {
       element.addEventListener("click", (e) => {
         e.preventDefault();
         element.classList.add("clicked");
+      });
+      element.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          element.classList.add("clicked");
+        }
       });
     });
 
